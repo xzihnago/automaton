@@ -1,0 +1,22 @@
+{
+  "type": "module",
+  "scripts": {
+    "dev:check": "tsc --noEmit",
+    "dev:test": "vitest",
+    "package:eslint": "eslint **/src/**",
+    "package:prettier": "prettier -c **/src/**",
+    "package:bump-dependencies": "pnpm up -r -L"
+  },
+  "dependencies": {
+    "tsx": "^4.21.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "3.8.1",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.54.0",
+    "vitest": "^4.0.18"
+  }
+}

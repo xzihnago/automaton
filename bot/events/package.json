@@ -1,0 +1,17 @@
+{
+  "type": "module",
+  "name": "@automaton/events",
+  "main": "src/index",
+  "dependencies": {
+    "@automaton/database": "workspace:^",
+    "@automaton/logger": "workspace:^",
+    "@automaton/interactions": "workspace:^",
+    "@automaton/messages": "workspace:^",
+    "@automaton/tasks": "workspace:^",
+    "discord.js": "^14.25.1",
+    "node-schedule": "^2.1.1"
+  },
+  "devDependencies": {
+    "@types/node-schedule": "^2.1.8"
+  }
+}

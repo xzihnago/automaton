@@ -1,0 +1,14 @@
+{
+  "type": "module",
+  "scripts": {
+    "dev:watch": "tsx watch src",
+    "dev:deploy": "tsx src/deploy"
+  },
+  "dependencies": {
+    "@automaton/extension": "workspace:^",
+    "@automaton/logger": "workspace:^",
+    "@automaton/events": "workspace:^",
+    "@automaton/interactions": "workspace:^",
+    "discord.js": "^14.25.1"
+  }
+}

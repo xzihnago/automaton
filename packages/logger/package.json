@@ -1,0 +1,8 @@
+{
+  "type": "module",
+  "name": "@automaton/logger",
+  "main": "src/index",
+  "dependencies": {
+    "@automaton/database": "workspace:^"
+  }
+}

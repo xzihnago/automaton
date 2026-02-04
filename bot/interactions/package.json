@@ -1,0 +1,10 @@
+{
+  "type": "module",
+  "name": "@automaton/interactions",
+  "main": "src/index",
+  "dependencies": {
+    "@automaton/audio": "workspace:^",
+    "@automaton/logger": "workspace:^",
+    "discord.js": "^14.25.1"
+  }
+}

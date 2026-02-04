@@ -1,0 +1,9 @@
+{
+  "type": "module",
+  "name": "@automaton/messages",
+  "main": "src/index",
+  "dependencies": {
+    "@automaton/logger": "workspace:^",
+    "discord.js": "^14.25.1"
+  }
+}

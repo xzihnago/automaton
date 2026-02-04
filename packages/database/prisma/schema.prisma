@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Log {
+  id        String   @id @default(uuid(7))
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  level   Int
+  message String
+
+  category  LogCategory?
+  guild     Guild?       @relation(fields: [guildId], references: [guildId])
+  guildId   String?
+  channelId String?
+  userId    String?
+}
+
+enum LogCategory {
+  Audio
+  Deploy
+  Client
+  Task
+  Interaction
+  GuildVoice
+}
+
+model Guild {
+  id        String   @id @default(uuid(7))
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  guildId String @unique
+
+  logs   Log[]
+  player AudioPlayer?
+}
+
+model AudioPlayer {
+  id        String   @id @default(uuid(7))
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  guild   Guild  @relation(fields: [guildId], references: [guildId])
+  guildId String @unique
+
+  volume     Float       @default(1.0)
+  queue      AudioInfo[]
+  queueMode  Int         @default(0)
+  queueIndex Int         @default(0)
+}
+
+model AudioInfo {
+  id        String   @id @default(uuid(7))
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  player   AudioPlayer @relation(fields: [playerId], references: [id])
+  playerId String
+
+  url         String
+  title       String
+  channelName String
+  channelUrl  String
+  duration    Int
+}

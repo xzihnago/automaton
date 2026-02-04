@@ -1,0 +1,11 @@
+packages:
+  - packages/*
+  - bot/*
+
+onlyBuiltDependencies:
+  - '@discordjs/opus'
+  - '@prisma/engines'
+  - better-sqlite3
+  - esbuild
+  - prisma
+  - ytdlp-nodejs
