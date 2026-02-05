@@ -52,8 +52,17 @@ class GuildVoice {
     private _id: string,
     private _volume: number,
   ) {
-    this.player = createAudioPlayer();
-    this.player.on(AudioPlayerStatus.Idle, () => void this.playNext());
+    this.player = createAudioPlayer()
+      .on(AudioPlayerStatus.AutoPaused, () => {
+        this.panel.countdown();
+      })
+      .on(AudioPlayerStatus.Idle, () => {
+        this.panel.countdown();
+        void this.playNext();
+      })
+      .on(AudioPlayerStatus.Paused, () => {
+        this.panel.countdown();
+      });
     this._resource = null;
   }
 
@@ -130,12 +139,6 @@ class GuildVoice {
     });
 
     this.player.pause();
-    setTimeout(
-      () => {
-        if (this.player.isPaused()) this.panel.disable();
-      },
-      10 * 60 * 1000,
-    );
   }
   async resume() {
     if (this.queue.isEmpty() || this.player.isPlaying() || !this.subscription)
@@ -216,9 +219,6 @@ class GuildVoice {
       });
 
       this._resource = null;
-      setTimeout(() => {
-        if (this.player.isIdle()) this.panel.disable();
-      }, 60 * 1000);
       return;
     }
 
@@ -438,6 +438,7 @@ class GuildVoiceQueue {
 
 class GuildVoicePanel {
   private _mode: PanelMode;
+  private _countdown: NodeJS.Timeout | null;
   private _updater: NodeJS.Timeout | null;
   private _message: Message | null;
 
@@ -448,6 +449,7 @@ class GuildVoicePanel {
     readonly queue: GuildVoiceQueue,
   ) {
     this._mode = PanelMode.Audio;
+    this._countdown = null;
     this._updater = null;
     this._message = null;
     this.fullInfo = null;
@@ -488,13 +490,33 @@ class GuildVoicePanel {
       void this._message?.delete();
     }
     this._message = value;
+    this.countdown();
   }
 
   isEnabled() {
     return Boolean(this.updater);
   }
 
-  disable = () => {
+  countdown() {
+    clearTimeout(this._countdown as never);
+    this._countdown = setTimeout(
+      () => {
+        void this.guild.player.then((player) => {
+          if (!player.player.isPlaying()) {
+            logger.debug(`GuildVoicePanel countdown reached, disabling`, {
+              category: LogCategory.GuildVoice,
+              guildId: this.guild.id,
+              channelId: player.connection?.joinConfig.channelId,
+            });
+            this.disable();
+          }
+        });
+      },
+      10 * 60 * 1000,
+    );
+  }
+
+  disable() {
     if (!this.isEnabled()) return;
     this.updater = null;
     this.message = null;
@@ -503,11 +525,10 @@ class GuildVoicePanel {
       category: LogCategory.GuildVoice,
       guildId: this.guild.id,
     });
-  };
+  }
 
-  enable = (message?: Message) => {
+  enable(message?: Message) {
     this.message = message ?? this.message;
-
     if (this.isEnabled()) return;
     this.updater = setInterval(() => void this.update(), 2000);
 
@@ -515,9 +536,9 @@ class GuildVoicePanel {
       category: LogCategory.GuildVoice,
       guildId: this.guild.id,
     });
-  };
+  }
 
-  update = async () => {
+  async update() {
     if (!this.message) return;
 
     let embed;
@@ -543,9 +564,9 @@ class GuildVoicePanel {
         components: this.message.components,
       });
     }
-  };
+  }
 
-  private infoEmbed = async () => {
+  private async infoEmbed() {
     if (!this.message || !this.fullInfo) return;
 
     const now = this.fullInfo;
@@ -559,9 +580,6 @@ class GuildVoicePanel {
       duration,
       Math.min(20, Math.floor(now.thumbnailWidth / 20)),
     );
-
-    const playMode = `${i18n.Repeat[this.locale]}${[i18n.Off[this.locale], i18n.All[this.locale], i18n.One[this.locale]][this.queue.mode]}`;
-    const queueIndex = `${i18n.Queue[this.locale]}${(this.queue.index + 1).toFixed()} / ${this.queue.length.toFixed()}`;
 
     return new EmbedBuilder()
       .setColor(this.message.getColor())
@@ -591,36 +609,38 @@ class GuildVoicePanel {
           value: prev
             ? hyperlink(prev.title, prev.url)
             : i18n.None[this.locale],
-          inline: false,
         },
         {
           name: i18n.Next[this.locale],
           value: next
             ? hyperlink(next.title, next.url)
             : i18n.None[this.locale],
-          inline: false,
         },
       )
-      .setFooter({ text: `${playMode}\n${queueIndex}` });
-  };
+      .setFooter({
+        text: [
+          `${i18n.Repeat[this.locale]}${[i18n.Off[this.locale], i18n.All[this.locale], i18n.One[this.locale]][this.queue.mode]}`,
+          `${i18n.Queue[this.locale]}${(this.queue.index + 1).toFixed()} / ${this.queue.length.toFixed()}`,
+          `${i18n.Volume[this.locale]}${(player.volume * 100).toFixed()}%`,
+        ].join("\n"),
+      });
+  }
 
-  private queueEmbed = async () => {
+  private async queueEmbed() {
     if (!this.message || this.queue.isEmpty()) return;
 
     const items = await this.queue.items();
-
     const start = Math.max(0, this.queue.index - 3);
-    const embed = new EmbedBuilder()
+
+    return new EmbedBuilder()
       .setColor(this.message.getColor())
       .setTitle(i18n.Queue[this.locale])
       .addFields(
         items.slice(start, this.queue.index + 4).map((ainfo, i) => ({
           name: [
             `No. ${(start + i + 1).toFixed()}`,
-            this.queue.index === start + i
-              ? `\u25b6\ufe0f ${i18n.NowPlaying[this.locale]}` // ▶️
-              : undefined,
-          ].join(" "),
+            this.queue.index === start + i ? i18n.NowPlaying[this.locale] : "",
+          ].join(""),
           value: [
             hyperlink(ainfo.title, ainfo.url),
             `${i18n.Channel[this.locale]} - ${hyperlink(ainfo.channelName, ainfo.channelUrl)}`,
@@ -628,9 +648,7 @@ class GuildVoicePanel {
           ].join("\n"),
         })),
       );
-
-    return embed;
-  };
+  }
 
   private makeProgressBar = (
     total: number,
@@ -684,6 +702,10 @@ const i18n = i18nWrapper({
     [Locale.EnglishUS]: "Queue: ",
     [Locale.ChineseTW]: "佇列：",
   },
+  Volume: {
+    [Locale.EnglishUS]: "Volume: ",
+    [Locale.ChineseTW]: "音量：",
+  },
 
   Channel: {
     [Locale.EnglishUS]: "Channel",
@@ -712,7 +734,7 @@ const i18n = i18nWrapper({
     [Locale.ChineseTW]: "時長",
   },
   NowPlaying: {
-    [Locale.EnglishUS]: "Now playing",
-    [Locale.ChineseTW]: "正在播放",
+    [Locale.EnglishUS]: " \u25b6\ufe0f Now playing", // ▶️
+    [Locale.ChineseTW]: " \u25b6\ufe0f 正在播放",
   },
 });
