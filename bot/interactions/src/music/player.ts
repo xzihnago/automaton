@@ -124,46 +124,56 @@ export const player: SlashCommand<"cached"> = {
         return;
 
       case "resume":
-        if (interaction.member.voice.join()) {
+        {
+          if (!player.connection) {
+            await interaction.reply(i18n.NotInVoiceChannel[interaction.locale]);
+            return;
+          }
+
           const ainfo = await player.resume();
-          await interaction.reply(
-            i18n.AudioResume[interaction.locale] +
-              inlineCode(String(ainfo?.title)),
-          );
-        } else {
-          await interaction.reply(
-            i18n.CannotJoinVoiceChannel[interaction.locale],
-          );
+          if (ainfo) {
+            await interaction.reply(
+              i18n.AudioResume[interaction.locale] + inlineCode(ainfo.title),
+            );
+          } else {
+            await interaction.reply(i18n.QueueEmpty[interaction.locale]);
+          }
         }
         return;
 
       case "previous":
-        if (player.queue.isEmpty()) {
-          await interaction.reply({
-            content: i18n.QueueEmpty[interaction.locale],
-            ephemeral: true,
-          });
-        } else {
+        {
+          if (!player.connection) {
+            await interaction.reply(i18n.NotInVoiceChannel[interaction.locale]);
+            return;
+          }
+
           const ainfo = await player.prev();
-          await interaction.reply(
-            i18n.AudioPlay[interaction.locale] +
-              inlineCode(String(ainfo?.title)),
-          );
+          if (ainfo) {
+            await interaction.reply(
+              i18n.AudioPlay[interaction.locale] + inlineCode(ainfo.title),
+            );
+          } else {
+            await interaction.reply(i18n.QueueEmpty[interaction.locale]);
+          }
         }
         return;
 
       case "next":
-        if (player.queue.isEmpty()) {
-          await interaction.reply({
-            content: i18n.QueueEmpty[interaction.locale],
-            ephemeral: true,
-          });
-        } else {
+        {
+          if (!player.connection) {
+            await interaction.reply(i18n.NotInVoiceChannel[interaction.locale]);
+            return;
+          }
+
           const ainfo = await player.next();
-          await interaction.reply(
-            i18n.AudioPlay[interaction.locale] +
-              inlineCode(String(ainfo?.title)),
-          );
+          if (ainfo) {
+            await interaction.reply(
+              i18n.AudioPlay[interaction.locale] + inlineCode(ainfo.title),
+            );
+          } else {
+            await interaction.reply(i18n.QueueEmpty[interaction.locale]);
+          }
         }
         return;
 
@@ -180,9 +190,13 @@ export const player: SlashCommand<"cached"> = {
 };
 
 const i18n = i18nWrapper({
-  CannotJoinVoiceChannel: {
-    [Locale.EnglishUS]: "Cannot join voice channel",
-    [Locale.ChineseTW]: "無法加入語音頻道",
+  NotInVoiceChannel: {
+    [Locale.EnglishUS]: "Bot is not in a voice channel",
+    [Locale.ChineseTW]: "機器人不在語音頻道中",
+  },
+  QueueEmpty: {
+    [Locale.EnglishUS]: "Queue is empty",
+    [Locale.ChineseTW]: "佇列為空",
   },
 
   AudioPause: {
@@ -196,11 +210,6 @@ const i18n = i18nWrapper({
   AudioPlay: {
     [Locale.EnglishUS]: "Play ",
     [Locale.ChineseTW]: "播放 ",
-  },
-
-  QueueEmpty: {
-    [Locale.EnglishUS]: "Queue is empty",
-    [Locale.ChineseTW]: "佇列為空",
   },
 
   VolumeSet: {
