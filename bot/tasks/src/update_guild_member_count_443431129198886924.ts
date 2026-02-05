@@ -20,10 +20,9 @@ export const updateGuildMemberCount443431129198886924: Task = {
       }
     }
 
-    await guild.channels
-      .resolve("1462291734456172554")
-      ?.setName(
-        `伺服器人數：${guild.memberCount.toFixed()}┃語音人數：${audioCount.toFixed()}`,
-      );
+    const channel = guild.channels.resolve("1462291734456172554");
+    const name = `伺服器人數：${guild.memberCount.toFixed()}┃語音人數：${audioCount.toFixed()}`;
+
+    if (channel?.name !== name) await channel?.setName(name);
   },
 };
