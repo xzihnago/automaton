@@ -115,6 +115,9 @@ importers:
       '@automaton/logger':
         specifier: workspace:^
         version: link:../logger
+      '@distube/ytdl-core':
+        specifier: github:ToddyTheNoobDud/ytdl-core-stuff
+        version: https://codeload.github.com/ToddyTheNoobDud/ytdl-core-stuff/tar.gz/f736f9bb3d39857e3122b3c0781b30d6da09a342
       '@snazzah/davey':
         specifier: ^0.1.9
         version: 0.1.9
@@ -122,9 +125,6 @@ importers:
         specifier: ^16.0.1
         version: 16.0.1
     devDependencies:
-      '@distube/ytdl-core':
-        specifier: github:ToddyTheNoobDud/ytdl-core-stuff
-        version: https://codeload.github.com/ToddyTheNoobDud/ytdl-core-stuff/tar.gz/f736f9bb3d39857e3122b3c0781b30d6da09a342
       ytdlp-nodejs:
         specifier: ^3.4.2
         version: 3.4.2

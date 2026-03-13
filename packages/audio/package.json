@@ -4,11 +4,11 @@
   "main": "src/index",
   "dependencies": {
     "@automaton/logger": "workspace:^",
+    "@distube/ytdl-core": "github:ToddyTheNoobDud/ytdl-core-stuff",
     "@snazzah/davey": "^0.1.9",
     "youtubei.js": "^16.0.1"
   },
   "devDependencies": {
-    "@distube/ytdl-core": "github:ToddyTheNoobDud/ytdl-core-stuff",
     "ytdlp-nodejs": "^3.4.2"
   }
 }
